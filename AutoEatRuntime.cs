@@ -42,6 +42,10 @@ namespace AutoEatPulsar
         public static void Start()
         {
             settings = SettingsStore.Load();
+            tick = 0;
+            // Show the first warning as soon as the configured hunger threshold is reached.
+            // The 30-second cooldown only applies to subsequent warnings.
+            lastNoFoodWarning = -1800;
             RebuildFoodCatalog();
             SettingsStore.Save(settings);
         }
