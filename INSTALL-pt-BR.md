@@ -20,9 +20,21 @@ O AutoEat aparece no Terminal do personagem, na aba **Painel de controle**. Use 
 2. Em **Assets**, baixe **Source code (zip)**.
 3. Extraia o ZIP em uma pasta permanente, por exemplo `C:\Games\PulsarPlugins\AutoEat`.
    - Não extraia em `Downloads` se você costuma limpar essa pasta.
-4. No Pulsar, adicione a pasta extraída como uma **fonte local/de desenvolvimento de plugin**.
-5. Ative esse plugin no perfil atual do Pulsar.
-6. Inicie o Space Engineers pelo Pulsar.
+4. Feche o Space Engineers e abra o Pulsar com o parâmetro `-sources`:
+   - se você usa um atalho, clique com o botão direito nele, abra **Propriedades** e acrescente ` -sources` ao final do campo **Destino**;
+   - por exemplo: `C:\Caminho\Para\Pulsar\Interim.exe -sources`.
+5. Na janela do Pulsar, clique em **Sources** (Fontes).
+6. Escolha a opção de adicionar uma **Development Folder** / **Local Plugin Source** e selecione a pasta extraída no passo 3.
+   - selecione a pasta que contém `Plugin.cs`, `AutoEatRuntime.cs` e `Settings.cs`;
+   - não selecione uma pasta acima ou a pasta ZIP.
+7. Volte à lista de plugins do Pulsar, marque **AutoEat** no perfil atual e salve/aplique a alteração.
+8. Inicie o Space Engineers pelo Pulsar.
+
+> O modo `-sources` é usado apenas para cadastrar a pasta local. Depois disso, você pode abrir o Pulsar normalmente.
+
+### Se o botão Sources não aparecer
+
+Confirme que o Pulsar foi iniciado com `-sources`. Feche-o completamente e abra novamente pelo atalho já alterado. Se usar o Steam para iniciar o jogo, abra o executável do Pulsar uma vez com esse parâmetro antes de voltar ao seu método normal de iniciar o jogo.
 
 ### Como conferir se carregou
 
