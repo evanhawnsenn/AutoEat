@@ -29,7 +29,6 @@ namespace AutoEatPulsar
         private const string ControlName = "AutoEatPulsarControl";
         private static readonly FieldInfo TerminalInstance = typeof(MyGuiScreenTerminal).GetField("m_instance", BindingFlags.Static | BindingFlags.NonPublic);
         private static readonly FieldInfo TerminalTabs = typeof(MyGuiScreenTerminal).GetField("m_terminalTabs", BindingFlags.Instance | BindingFlags.NonPublic);
-        private static readonly FieldInfo TerminalInteractedEntity = typeof(MyGuiScreenTerminal).GetField("m_interactedEntity", BindingFlags.Static | BindingFlags.NonPublic);
         private static readonly List<FoodEntry> Foods = new List<FoodEntry>();
         private static readonly Dictionary<string, FoodEntry> FoodsById = new Dictionary<string, FoodEntry>();
         private static readonly List<PriorityRow> PriorityRows = new List<PriorityRow>();
@@ -68,7 +67,7 @@ namespace AutoEatPulsar
             if (++tick % 60 != 0 || !settings.Enabled) return;
 
             MyCharacter character = MySession.Static.LocalCharacter;
-            if (character.StatComp == null || character.StatComp.FoodRatio * 100f > settings.ConsumeAtPercent) return;
+            if (character.StatComp == null || character.StatComp.Food == null || character.StatComp.FoodRatio * 100f > settings.ConsumeAtPercent) return;
             MyInventory inventory = character.GetInventoryBase() as MyInventory;
             if (inventory == null) return;
 
@@ -104,12 +103,14 @@ namespace AutoEatPulsar
 
         private static void TryAddControlPanelSection()
         {
+            if (TerminalInstance == null || TerminalTabs == null) return;
             MyGuiScreenTerminal terminal = TerminalInstance.GetValue(null) as MyGuiScreenTerminal;
             if (terminal == null)
             {
                 configuredTerminal = null;
                 return;
             }
+            if (ReferenceEquals(terminal, configuredTerminal)) return;
             MyGuiControlTabControl tabs = TerminalTabs.GetValue(terminal) as MyGuiControlTabControl;
             if (tabs == null) return;
             MyGuiControlTabPage page;
@@ -117,14 +118,13 @@ namespace AutoEatPulsar
 
             // The Control Panel tab is shared by the player terminal and every grid/block terminal.
             // Only the former has the local character as its interacted entity.
-            object interactedEntity = TerminalInteractedEntity == null ? null : TerminalInteractedEntity.GetValue(null);
+            object interactedEntity = MyGuiScreenTerminal.InteractedEntity;
             if (interactedEntity != null && !(interactedEntity is MyCharacter))
             {
                 RemoveControlPanelSection(page);
                 configuredTerminal = terminal;
                 return;
             }
-            if (ReferenceEquals(terminal, configuredTerminal)) return;
             foreach (MyGuiControlBase control in page.Controls)
                 if (control.Name == ControlName)
                 {
