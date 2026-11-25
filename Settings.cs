@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
+using VRage.FileSystem;
+using VRage.Utils;
 
 namespace AutoEatPulsar
 {
@@ -17,24 +19,62 @@ namespace AutoEatPulsar
 
     internal static class SettingsStore
     {
-        private static readonly string Path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Pulsar", "Legacy", "Local", "AutoEatPulsar.settings.xml");
+        private const string FileName = "AutoEat.settings.xml";
+
+        private static string SettingsPath
+        {
+            get
+            {
+                return System.IO.Path.Combine(MyFileSystem.UserDataPath, "Storage", "AutoEat", FileName);
+            }
+        }
+
+        private static string LegacySettingsPath
+        {
+            get
+            {
+                return System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Pulsar", "Legacy", "Local", "AutoEatPulsar.settings.xml");
+            }
+        }
 
         public static AutoEatSettings Load()
         {
             try
             {
-                if (!File.Exists(Path)) return new AutoEatSettings();
-                using (FileStream stream = File.OpenRead(Path))
+                string path = File.Exists(SettingsPath) ? SettingsPath : LegacySettingsPath;
+                if (!File.Exists(path)) return new AutoEatSettings();
+                using (FileStream stream = File.OpenRead(path))
                     return (AutoEatSettings)new XmlSerializer(typeof(AutoEatSettings)).Deserialize(stream);
             }
-            catch { return new AutoEatSettings(); }
+            catch (Exception exception)
+            {
+                MyLog.Default.WriteLine("[AutoEat] Could not load settings: " + exception);
+                return new AutoEatSettings();
+            }
         }
 
         public static void Save(AutoEatSettings settings)
         {
-            Directory.CreateDirectory(System.IO.Path.GetDirectoryName(Path));
-            using (FileStream stream = File.Create(Path))
-                new XmlSerializer(typeof(AutoEatSettings)).Serialize(stream, settings);
+            string temporaryPath = null;
+            try
+            {
+                string directory = System.IO.Path.GetDirectoryName(SettingsPath);
+                Directory.CreateDirectory(directory);
+                temporaryPath = SettingsPath + ".tmp";
+                using (FileStream stream = File.Create(temporaryPath))
+                    new XmlSerializer(typeof(AutoEatSettings)).Serialize(stream, settings);
+                File.Copy(temporaryPath, SettingsPath, true);
+                File.Delete(temporaryPath);
+            }
+            catch (Exception exception)
+            {
+                MyLog.Default.WriteLine("[AutoEat] Could not save settings: " + exception);
+                try
+                {
+                    if (temporaryPath != null && File.Exists(temporaryPath)) File.Delete(temporaryPath);
+                }
+                catch { }
+            }
         }
     }
 }
